@@ -203,35 +203,33 @@
 
   /* ── SUCCESS BANNER ── */
   .success-banner {
-    background: var(--success-light);
-    border: 2px solid var(--success);
     border-radius: var(--radius);
     padding: 20px;
     margin-bottom: 16px;
     display: none;
+    border: 3px solid #ccc;
   }
   .success-banner.show { display: block; }
   .success-banner .group-badge {
     display: inline-block;
-    padding: 4px 12px;
+    padding: 5px 14px;
     border-radius: 20px;
     font-size: 13px;
-    font-weight: 700;
-    margin-bottom: 8px;
+    font-weight: 800;
+    margin-bottom: 10px;
+    color: white;
   }
   .success-banner h3 {
     font-family: 'Nunito', sans-serif;
-    font-size: 20px;
+    font-size: 22px;
     font-weight: 900;
-    color: var(--success);
-    margin-bottom: 4px;
+    margin-bottom: 8px;
   }
   .success-banner .mentors {
-    font-size: 15px;
-    color: var(--text2);
+    font-size: 14px;
     font-weight: 600;
   }
-  .success-banner .mentors strong { color: var(--text); }
+  .success-banner .mentors strong { font-weight: 800; }
 
   /* ── GROUP CHIPS ── */
   .group-select-wrap {
@@ -558,7 +556,7 @@
       <div class="group-badge" id="sb-badge">Група</div>
       <h3 id="sb-name">Ім'я учасника</h3>
       <div class="mentors">Наставники: <strong id="sb-mentors">—</strong></div>
-      <div class="mentors" style="margin-top:6px">Колір групи: <strong id="sb-color">—</strong></div>
+
     </div>
   </div>
 
@@ -804,33 +802,34 @@ function showSuccessBanner(pib, groupData) {
     Object.entries(groupData).forEach(([k, v]) => { gd[k.trim()] = v; });
   }
 
-  const color    = gd['Колір']      || gd['Колiр']    || '';
-  const mentors  = gd['Наставники'] || '';
-  const vik      = gd['Вік']        || gd['Вiк']       || '';
+  const color   = gd['Колір']      || gd['Колiр']  || '';
+  const mentors = gd['Наставники'] || '';
+  const vik     = gd['Вік']        || gd['Вiк']     || '';
 
   document.getElementById('sb-name').textContent    = pib;
   document.getElementById('sb-mentors').textContent = mentors || '—';
-  document.getElementById('sb-color').textContent   = color   || '—';
+  // color shown via banner/badge styling, not text
   badge.textContent = vik || '—';
 
-  // Color the badge background
-  const colorMap = {
-    'синій': '#2196F3', 'blue': '#2196F3',
-    'зелений': '#4CAF50', 'green': '#4CAF50',
-    'червоний': '#F44336', 'red': '#F44336',
-    'жовтий': '#FFC107', 'yellow': '#FFC107',
-    'фіолетовий': '#9C27B0', 'purple': '#9C27B0',
-    'помаранчевий': '#FF9800', 'orange': '#FF9800',
-    'рожевий': '#E91E63', 'pink': '#E91E63',
-  };
-  const key = color.toLowerCase().replace(/[^а-яa-zіїєґ]/gi, '');
-  const bgColor = Object.entries(colorMap).find(([k]) => key.includes(k))?.[1] || '#4A90D9';
-  badge.style.background = bgColor + '22';
-  badge.style.color = bgColor;
+  // Use hex color directly from the Групи sheet
+  const isHex = /^#([0-9A-Fa-f]{3}|[0-9A-Fa-f]{6})$/.test(color.trim());
+  const bgColor = isHex ? color.trim() : '#4A90D9';
+
+  // Banner background = light tint of the group color, border = the color itself
+  banner.style.background = bgColor + '18';
+  banner.style.borderColor = bgColor;
+  banner.querySelector('h3').style.color = bgColor;
+
+  // Badge = solid color
+  badge.style.background = bgColor;
+  badge.style.color = '#fff';
+
+  // Mentor text color = slightly darkened group color
+  banner.querySelectorAll('.mentors').forEach(el => { el.style.color = bgColor; });
 
   banner.classList.add('show');
+  // No auto-hide — stays until next registration
   clearTimeout(banner._timer);
-  banner._timer = setTimeout(() => banner.classList.remove('show'), 7000);
 }
 
 // ─── GROUPS PAGE ─────────────────────────────────────────────
@@ -858,18 +857,26 @@ async function renderGroupList() {
   const list = participants.filter(p => p.Група === selectedGroup);
   const groupData = groups.find(g => g.Вік === selectedGroup);
 
+  const hex = (function() {
+    const c = (groupData?.Колір || '').trim();
+    return /^#([0-9A-Fa-f]{3}|[0-9A-Fa-f]{6})$/.test(c) ? c : '#4A90D9';
+  })();
+
   let html = `
-    <div class="card" style="margin-bottom:12px">
+    <div style="border-radius:var(--radius);padding:20px;margin-bottom:12px;
+      border:3px solid ${hex}33;background:${hex}0D">
       <div style="display:flex;justify-content:space-between;align-items:flex-start">
         <div>
-          <div class="card-title" style="margin-bottom:4px">${selectedGroup}</div>
-          <div style="font-size:13px;color:var(--text2);">Наставники: <b>${groupData?.Наставники || '—'}</b></div>
-          <div style="font-size:13px;color:var(--text2);margin-top:2px;">Колір: <b>${groupData?.Колір || '—'}</b></div>
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+            <div style="width:18px;height:18px;border-radius:50%;background:${hex};flex-shrink:0;box-shadow:0 2px 6px ${hex}66"></div>
+            <span style="font-family:'Nunito',sans-serif;font-weight:900;font-size:17px;color:${hex}">${selectedGroup}</span>
+          </div>
+          <div style="font-size:13px;color:var(--text2);">👩‍🏫 Наставники: <b style="color:var(--text)">${groupData?.Наставники || '—'}</b></div>
         </div>
-        <button class="refresh-btn" onclick="activateGroup(selectedGroup)">🔄 Оновити</button>
+        <button class="refresh-btn" onclick="activateGroup(selectedGroup)">🔄</button>
       </div>
     </div>
-    <div class="count-badge">👦 ${list.length} учасників</div>
+    <div class="count-badge" style="border:2px solid ${hex}44;background:${hex}12;color:${hex}">👦 ${list.length} учасників</div>
     <div class="participant-list">
   `;
 
@@ -878,8 +885,9 @@ async function renderGroupList() {
   } else {
     list.forEach((p, i) => {
       html += `
-        <div class="participant-item" id="pi-${p.row}">
-          <div class="item-num">${i + 1}</div>
+        <div class="participant-item" id="pi-${p.row}"
+          style="border-left:4px solid ${hex}">
+          <div class="item-num" style="color:${hex}">${i + 1}</div>
           <div class="participant-info">
             <div class="participant-name" id="pn-${p.row}">${escHtml(p.ПІБ)}</div>
           </div>
@@ -913,24 +921,21 @@ async function renderOrganizer() {
 
   const maxCount = Math.max(...Object.values(byGroup), 1);
 
-  const colorMap = {
-    'синій':'#2196F3','зелений':'#4CAF50','червоний':'#F44336',
-    'жовтий':'#FFC107','фіолетовий':'#9C27B0','помаранчевий':'#FF9800','рожевий':'#E91E63',
-  };
-  function groupColor(g) {
-    const gd = groups.find(x => x.Вік === g);
-    const c = (gd?.Колір || '').toLowerCase().replace(/[^а-яa-z]/g,'');
-    return Object.entries(colorMap).find(([k]) => c.includes(k))?.[1] || '#4A90D9';
+  function groupHex(grpName) {
+    const gd = groups.find(x => x.Вік === grpName);
+    const c = (gd?.Колір || '').trim();
+    return /^#([0-9A-Fa-f]{3}|[0-9A-Fa-f]{6})$/.test(c) ? c : '#4A90D9';
   }
 
   let bars = '';
   Object.entries(byGroup).forEach(([grp, cnt]) => {
     const pct = Math.round((cnt / maxCount) * 100);
+    const hex = groupHex(grp);
     bars += `
       <div class="bar-row">
         <div class="bar-label"><span>${grp}</span><span>${cnt}</span></div>
         <div class="bar-track">
-          <div class="bar-fill" style="width:${pct}%;background:${groupColor(grp)}"></div>
+          <div class="bar-fill" style="width:${pct}%;background:${hex}"></div>
         </div>
       </div>
     `;
@@ -959,7 +964,61 @@ async function renderOrganizer() {
       </div>
       ${bars}
     </div>
+
+    <div class="card">
+      <div class="card-title">🔍 Пошук учасника</div>
+      <div class="field" style="margin-bottom:0">
+        <input type="text" id="org-search" placeholder="Введіть ПІБ або частину імені…"
+          oninput="searchParticipant(this.value)" autocomplete="off">
+      </div>
+      <div id="org-search-results" style="margin-top:12px"></div>
+    </div>
   `;
+}
+
+function searchParticipant(query) {
+  const resultsEl = document.getElementById('org-search-results');
+  if (!resultsEl) return;
+
+  const q = query.trim().toLowerCase();
+  if (!q) { resultsEl.innerHTML = ''; return; }
+
+  const found = participants.filter(p =>
+    String(p.ПІБ || '').toLowerCase().includes(q)
+  );
+
+  if (found.length === 0) {
+    resultsEl.innerHTML = '<div class="empty-state" style="padding:16px"><span class="emoji">🙈</span>Нікого не знайдено</div>';
+    return;
+  }
+
+  function groupHex(grpName) {
+    const gd = groups.find(x => x.Вік === grpName);
+    const c = (gd?.Колір || '').trim();
+    return /^#([0-9A-Fa-f]{3}|[0-9A-Fa-f]{6})$/.test(c) ? c : '#4A90D9';
+  }
+
+  let html = '<div style="display:flex;flex-direction:column;gap:10px">';
+  found.forEach(p => {
+    const hex = groupHex(p.Група);
+    const gd = groups.find(x => x.Вік === p.Група);
+    html += `
+      <div style="border-radius:12px;border:2px solid ${hex}22;background:${hex}0D;padding:14px 16px">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
+          <div style="width:10px;height:10px;border-radius:50%;background:${hex};flex-shrink:0"></div>
+          <span style="font-family:'Nunito',sans-serif;font-weight:900;font-size:16px;color:var(--text)">${escHtml(p.ПІБ || '—')}</span>
+        </div>
+        <div style="font-size:13px;color:var(--text2);line-height:1.7">
+          <div>🏷 Група: <b style="color:${hex}">${escHtml(p.Група || '—')}</b></div>
+          <div>👩‍🏫 Наставники: <b>${escHtml(gd?.Наставники || '—')}</b></div>
+          <div>📅 Дата: ${escHtml(p.Дата || '—')}</div>
+          <div>🆔 ID: ${escHtml(String(p.ID || '—'))}</div>
+        </div>
+      </div>
+    `;
+  });
+  html += '</div>';
+  resultsEl.innerHTML = html;
 }
 
 // ─── MODAL EDIT ──────────────────────────────────────────────
