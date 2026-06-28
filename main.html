@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Реєстрація · 2026</title>
+<title>Підлітковий ЛПЗ · 2026</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Inter:wght@400;500;600&display=swap');
 
@@ -640,7 +640,7 @@
 <div class="page active" id="page-register">
   <div class="page-header">
     <span class="emoji-big">🎉</span>
-    <h1>Реєстрація 2026</h1>
+    <h1>Підлітковий ЛПЗ · 2026</h1>
     <p>Реєстрація учасників</p>
   </div>
 
@@ -652,6 +652,7 @@
       <div class="group-badge" id="sb-badge">Підгрупа</div>
       <h3 id="sb-name">Ім'я учасника</h3>
       <div class="mentors">Наставники: <strong id="sb-mentors">—</strong></div>
+      <div id="sb-phone-line" style="display:none;font-size:13px;font-weight:600;margin-top:4px;"></div>
     </div>
   </div>
 
@@ -663,11 +664,17 @@
       <input type="text" id="reg-pib" placeholder="Прізвище Ім'я По-батькові" autocomplete="off">
     </div>
 
+
+    <div class="field">
+      <label>Телефон</label>
+      <input type="tel" id="reg-phone" placeholder="+380 XX XXX XX XX" autocomplete="off">
+    </div>
+
     <!-- MODE TOGGLE -->
     <div class="field">
       <label>Спосіб розподілу</label>
       <div class="mode-toggle">
-        <button class="mode-btn active" id="mode-auto" onclick="setMode('auto')">🤖 Авто (за віком)</button>
+        <button class="mode-btn active" id="mode-auto" onclick="setMode('auto')">⚡ Авто (за віком)</button>
         <button class="mode-btn" id="mode-manual" onclick="setMode('manual')">✋ Вибрати підгрупу</button>
       </div>
     </div>
@@ -720,13 +727,6 @@
     <p>Статистика реєстрацій</p>
   </div>
 
-  <div style="margin-bottom:16px">
-    <button class="refresh-btn" onclick="debugData()" style="width:100%;justify-content:center;border-color:var(--accent);color:var(--accent)">
-      🔍 Показати сирі дані з таблиці (дебаг)
-    </button>
-    <pre id="debug-out" style="display:none;margin-top:8px;padding:12px;background:var(--surface2);border-radius:10px;font-size:11px;overflow:auto;white-space:pre-wrap;line-height:1.5;color:var(--text)"></pre>
-  </div>
-
   <div id="organizer-content">
     <div class="loader"><div class="spinner"></div><br>Завантаження...</div>
   </div>
@@ -762,7 +762,7 @@
 //  CONFIG
 // ═══════════════════════════════════════════════════════════════
 const SPREADSHEET_ID = '1ULrKlm5n8XqD1Ir4gUbBtIP5dTN143-GyYzaKEwcM88';
-const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyUmO6T7xqKIM1I-cACdvm5bIJ-eMZKB6_BAgguU5aQ4xuk1cXhYdaNUK4sQjogspWn/exec'; // <-- ВСТАВТЕ URL вашого Apps Script
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzAKz03Brl_C_47Evaviw6q6R82ezyvwqIhhavlf5K7aizgeTt-4_CJpxTj0ruZKE5p/exec'; // <-- ВСТАВТЕ URL вашого Apps Script
 
 // ═══════════════════════════════════════════════════════════════
 
@@ -960,6 +960,7 @@ function autoAssignSubgroup(age) {
 // ─── REGISTER ────────────────────────────────────────────────
 async function registerParticipant() {
   const pib    = document.getElementById('reg-pib').value.trim();
+  const phone  = document.getElementById('reg-phone').value.trim();
   const errBox = document.getElementById('reg-error');
   errBox.classList.remove('show');
 
@@ -1006,7 +1007,7 @@ async function registerParticipant() {
 
   if (APPS_SCRIPT_URL) {
     try {
-      await appsScriptCall('addParticipant', { pib, group: targetSubgroup, date: dateStr });
+      await appsScriptCall('addParticipant', { pib, group: targetSubgroup, date: dateStr, phone });
       if (selectedGroup === targetSubgroup) renderGroupList();
     } catch(e) {
       errBox.textContent = 'Помилка збереження: ' + e.message;
@@ -1017,8 +1018,9 @@ async function registerParticipant() {
     }
   }
 
-  showSuccessBanner(pib, groupData, targetSubgroup);
+  showSuccessBanner(pib, groupData, targetSubgroup, phone);
   document.getElementById('reg-pib').value = '';
+  document.getElementById('reg-phone').value = '';
   // reset age selection
   selectedAge = null;
   document.querySelectorAll('.age-chip').forEach(c => c.classList.remove('active'));
@@ -1030,7 +1032,7 @@ async function registerParticipant() {
   btn.disabled = false;
 }
 
-function showSuccessBanner(pib, groupData, subgroupName) {
+function showSuccessBanner(pib, groupData, subgroupName, phone) {
   const banner = document.getElementById('success-banner');
   const badge  = document.getElementById('sb-badge');
 
@@ -1055,6 +1057,14 @@ function showSuccessBanner(pib, groupData, subgroupName) {
   badge.style.background = bgColor;
   badge.style.color = '#fff';
   banner.querySelectorAll('.mentors').forEach(el => { el.style.color = bgColor; });
+  // phone line in banner
+  const phoneEl = document.getElementById('sb-phone-line');
+  if (phone) {
+    phoneEl.textContent = '📞 ' + phone;
+    phoneEl.style.display = '';
+  } else {
+    phoneEl.style.display = 'none';
+  }
   banner.classList.add('show');
   clearTimeout(banner._timer);
 }
@@ -1128,6 +1138,7 @@ async function renderGroupList() {
           <div class="item-num" style="color:${hex}">${i + 1}</div>
           <div class="participant-info">
             <div class="participant-name" id="pn-${p.row}">${escHtml(p.ПІБ)}</div>
+            ${p.Телефон ? `<div class="participant-meta">📞 ${escHtml(p.Телефон)}</div>` : ''}
           </div>
           <div class="participant-actions">
             <button class="btn btn-edit"   onclick="openEdit(${p.row}, '${escAttr(p.ПІБ)}')">✏️</button>
@@ -1239,7 +1250,7 @@ async function renderOrganizer() {
       ${bars}
     </div>
 
-    <div class="card">
+    <div class="card" style="margin-bottom:16px">
       <div class="card-title">🔍 Пошук учасника</div>
       <div class="field" style="margin-bottom:0">
         <input type="text" id="org-search" placeholder="Введіть ПІБ або частину імені…"
@@ -1291,6 +1302,7 @@ function searchParticipant(query) {
           <div>👩‍🏫 Наставники: <b>${escHtml(gd?.Наставники || '—')}</b></div>
           <div>📅 Дата: ${escHtml(p.Дата || '—')}</div>
           <div>🆔 ID: ${escHtml(String(p.ID || '—'))}</div>
+          ${p.Телефон ? `<div>📞 Телефон: <b>${escHtml(p.Телефон)}</b></div>` : ''}
         </div>
       </div>
     `;
@@ -1380,31 +1392,6 @@ document.getElementById('modal-edit').addEventListener('click', e => {
 document.getElementById('modal-delete').addEventListener('click', e => {
   if (e.target === e.currentTarget) closeModal();
 });
-
-
-// ─── DEBUG ────────────────────────────────────────────────────
-async function debugData() {
-  const out = document.getElementById('debug-out');
-  out.style.display = 'block';
-  out.textContent = '⏳ Завантаження...';
-  try {
-    const g = await appsScriptCall('getGroups');
-    const p = await appsScriptCall('getParticipants');
-    const gKeys = g.groups && g.groups[0] ? Object.keys(g.groups[0]) : [];
-    const pKeys = p.participants && p.participants[0] ? Object.keys(p.participants[0]) : [];
-    out.textContent =
-      '=== ГРУПИ (перший рядок) ===\n' +
-      'Ключі: ' + JSON.stringify(gKeys) + '\n' +
-      'Значення: ' + JSON.stringify(g.groups && g.groups[0]) + '\n\n' +
-      '=== УЧАСНИКИ (перший рядок) ===\n' +
-      'Ключі: ' + JSON.stringify(pKeys) + '\n' +
-      'Значення: ' + JSON.stringify(p.participants && p.participants[0]) + '\n\n' +
-      'Всього груп: ' + (g.groups || []).length + '\n' +
-      'Всього учасників: ' + (p.participants || []).length;
-  } catch(e) {
-    out.textContent = 'Помилка: ' + e.message;
-  }
-}
 
 // ─── START ───────────────────────────────────────────────────
 init();

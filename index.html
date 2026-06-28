@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Реєстрація · Малюки 2026</title>
+<title>Малюки 2026</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Inter:wght@400;500;600&display=swap');
 
@@ -556,7 +556,7 @@
       <div class="group-badge" id="sb-badge">Група</div>
       <h3 id="sb-name">Ім'я учасника</h3>
       <div class="mentors">Наставники: <strong id="sb-mentors">—</strong></div>
-
+      <div class="mentors" id="sb-phone-row" style="margin-top:6px;display:none">📞 <strong id="sb-phone">—</strong></div>
     </div>
   </div>
 
@@ -575,6 +575,11 @@
           <option value="">— Оберіть групу —</option>
         </select>
       </div>
+    </div>
+
+    <div class="field">
+      <label>Телефон</label>
+      <input type="tel" id="reg-phone" placeholder="+380 XX XXX XX XX" autocomplete="off">
     </div>
 
     <button class="btn btn-primary" onclick="registerParticipant()">
@@ -648,7 +653,7 @@ const SPREADSHEET_ID = '1dpjKu26hHQUuy8nA7S1p5OEeWBgqJAq15lLdoluWiBc';
 // ⚠️  Для читання потрібен Google API Key (без нього лише Apps Script запис)
 // Для повного функціоналу налаштуйте Google Apps Script Web App (інструкції нижче)
 // та вставте URL сюди:
-const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby0LmK6WoZokjPGCzLh_jKPc41nw-mJjEPp6y2TDmcdRDbJWhTerRr8BMlJbp3GN1bn/exec'; // <-- ВСТАВТЕ URL вашого Apps Script
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxbnOcqANBQg8l17_dOZ0pi8cvWNqGd48_KoG3-nt3FOgYH8lgCGqxs75gdjvzAe921/exec'; // <-- ВСТАВТЕ URL вашого Apps Script
 
 // ═══════════════════════════════════════════════════════════════
 
@@ -759,6 +764,7 @@ async function registerParticipant() {
 
   // Find group data BEFORE async call so we always have it
   const groupData = groups.find(g => String(g['Вік']).trim() === String(group).trim());
+  const phone = document.getElementById('reg-phone').value.trim();
 
   const btn = document.querySelector('#page-register .btn-primary');
   btn.textContent = '⏳ Збереження...';
@@ -770,7 +776,7 @@ async function registerParticipant() {
 
   if (APPS_SCRIPT_URL) {
     try {
-      await appsScriptCall('addParticipant', { pib, group, date: dateStr });
+      await appsScriptCall('addParticipant', { pib, group, date: dateStr, phone });
       if (selectedGroup === group) renderGroupList();
     } catch(e) {
       errBox.textContent = 'Помилка збереження: ' + e.message;
@@ -783,16 +789,17 @@ async function registerParticipant() {
     // demo mode — just show the banner, no save
   }
 
-  showSuccessBanner(pib, groupData);
+  showSuccessBanner(pib, groupData, phone);
   document.getElementById('reg-pib').value = '';
   document.getElementById('reg-group').value = '';
+  document.getElementById('reg-phone').value = '';
   showToast('✅ Зареєстровано!');
 
   btn.textContent = '✅ Зареєструвати';
   btn.disabled = false;
 }
 
-function showSuccessBanner(pib, groupData) {
+function showSuccessBanner(pib, groupData, phone) {
   const banner = document.getElementById('success-banner');
   const badge = document.getElementById('sb-badge');
 
@@ -808,6 +815,12 @@ function showSuccessBanner(pib, groupData) {
 
   document.getElementById('sb-name').textContent    = pib;
   document.getElementById('sb-mentors').textContent = mentors || '—';
+  if (phone) {
+    document.getElementById('sb-phone').textContent = phone;
+    document.getElementById('sb-phone-row').style.display = 'block';
+  } else {
+    document.getElementById('sb-phone-row').style.display = 'none';
+  }
   // color shown via banner/badge styling, not text
   badge.textContent = vik || '—';
 
@@ -890,6 +903,7 @@ async function renderGroupList() {
           <div class="item-num" style="color:${hex}">${i + 1}</div>
           <div class="participant-info">
             <div class="participant-name" id="pn-${p.row}">${escHtml(p.ПІБ)}</div>
+            ${p.Телефон ? `<div style="font-size:12px;color:var(--text3);margin-top:2px">📞 ${escHtml(p.Телефон)}</div>` : ''}
           </div>
           <div class="participant-actions">
             <button class="btn btn-edit" onclick="openEdit(${p.row}, '${escAttr(p.ПІБ)}')">✏️</button>
@@ -1011,8 +1025,7 @@ function searchParticipant(query) {
         <div style="font-size:13px;color:var(--text2);line-height:1.7">
           <div>🏷 Група: <b style="color:${hex}">${escHtml(p.Група || '—')}</b></div>
           <div>👩‍🏫 Наставники: <b>${escHtml(gd?.Наставники || '—')}</b></div>
-          <div>📅 Дата: ${escHtml(p.Дата || '—')}</div>
-          <div>🆔 ID: ${escHtml(String(p.ID || '—'))}</div>
+          ${p.Телефон ? `<div>📞 Телефон: <b>${escHtml(p.Телефон)}</b></div>` : ''}
         </div>
       </div>
     `;
