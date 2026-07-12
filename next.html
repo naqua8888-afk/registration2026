@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>с.Нижній Булатець 2026</title>
+<title>с.Вовчик 2026</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Inter:wght@400;500;600&display=swap');
 
@@ -544,7 +544,7 @@
 <div class="page active" id="page-register">
   <div class="page-header">
     <span class="emoji-big">🎉</span>
-    <h1>с.Нижній Булатець 2026</h1>
+    <h1>с.Вовчик 2026</h1>
     <p>Реєстрація учасників</p>
   </div>
 
@@ -648,12 +648,12 @@
 // ═══════════════════════════════════════════════════════════════
 //  CONFIG  — замініть на свій Spreadsheet ID та API Key
 // ═══════════════════════════════════════════════════════════════
-const SPREADSHEET_ID = '12IN4czK5Sc7mXfds9Lqwmeoyrr4_hXAsjzTiwV55deQ';
+const SPREADSHEET_ID = '1SvDvn50Uc70zH2jiT94PyBsgul9WruZwI4vIfsm1-4g';
 
 // ⚠️  Для читання потрібен Google API Key (без нього лише Apps Script запис)
 // Для повного функціоналу налаштуйте Google Apps Script Web App (інструкції нижче)
 // та вставте URL сюди:
-const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzYiyIpgGwYWZ0DVEaJIPWnm78thvAIKVBy-IC4if40X--smwZZa3GjpaO6vWptEQ/exec'; // <-- ВСТАВТЕ URL вашого Apps Script
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxZg085rSBpuyI8mXyqh94vdprVlls2J20pBkSwfkKimIzxaPkV-2HWfv-gj_G4DHp0/exec'; // <-- ВСТАВТЕ URL вашого Apps Script
 
 // ═══════════════════════════════════════════════════════════════
 
@@ -702,6 +702,7 @@ async function loadParticipants() {
   try {
     const data = await appsScriptCall('getParticipants');
     participants = (data.participants || []).filter(p => String(p.Дійсний).toLowerCase() === 'true');
+    console.log(participants)
   } catch(e) {
     participants = [];
   }
@@ -867,6 +868,7 @@ async function renderGroupList() {
   area.innerHTML = '<div class="loader"><div class="spinner"></div><br>Завантаження...</div>';
 
   await loadParticipants();
+  console.log(selectedGroup)
   const list = participants.filter(p => p.Група === selectedGroup);
   const groupData = groups.find(g => g.Вік === selectedGroup);
 
