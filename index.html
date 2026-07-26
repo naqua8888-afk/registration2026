@@ -3,9 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>с.Нижній Булатець 2026</title>
+<title>с.Воютин 2026</title>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Inter:wght@400;500;600&display=swap');
+  @import url('https://script.google.com/macros/s/AKfycbxWOal4NiHxg--J4c7PU8vlqsVTYi82_2UwIHEIEvJ2uY1a8CWDrzLLYa9YbUOzzjoj/exec');
 
   :root {
     --bg: #F7F4EF;
@@ -544,7 +544,7 @@
 <div class="page active" id="page-register">
   <div class="page-header">
     <span class="emoji-big">🎉</span>
-    <h1>с.Нижній Булатець 2026</h1>
+    <h1>с.Воютин 2026</h1>
     <p>Реєстрація учасників</p>
   </div>
 
@@ -653,7 +653,7 @@ const SPREADSHEET_ID = '12IN4czK5Sc7mXfds9Lqwmeoyrr4_hXAsjzTiwV55deQ';
 // ⚠️  Для читання потрібен Google API Key (без нього лише Apps Script запис)
 // Для повного функціоналу налаштуйте Google Apps Script Web App (інструкції нижче)
 // та вставте URL сюди:
-const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzYiyIpgGwYWZ0DVEaJIPWnm78thvAIKVBy-IC4if40X--smwZZa3GjpaO6vWptEQ/exec'; // <-- ВСТАВТЕ URL вашого Apps Script
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzv_r7fiNUeAazdu951tf9SRPRoS_QY7p0K_qAa9QbVafxbnBGKgeskBC4R9BdC9X0u/exec'; // <-- ВСТАВТЕ URL вашого Apps Script
 
 // ═══════════════════════════════════════════════════════════════
 
@@ -687,6 +687,8 @@ async function loadGroups() {
   try {
     const data = await appsScriptCall('getGroups');
     groups = data.groups || [];
+    console.log(groups);
+    
   } catch(e) {
     // demo fallback
     groups = [
